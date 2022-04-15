@@ -1,5 +1,6 @@
 <script context="module">
     import supabase from '$lib/utils/supabase'
+    import { onMount } from 'svelte';
 
     export async function load({ params: { id } }) {
         const { data: channel, error } = await supabase
@@ -11,18 +12,32 @@
         if (error) {
             console.log(error)
         }
+
+        // subscribe to messages that change in supabase per channel
+        const messages = writable(channel.messages);
+
+        supabase.from(`messages:channel_id=eq.${channel.id }`)
+            .on('*', (payload) => {
+                messages.update((messages) => [...messages, {id: payload.new.id, content: payload.new.content}])
+        }).subscribe();
+
         return {
             props: {
                 channel,
+                messages
             },
         }
     }
 </script>
 
 <script>
-    export let channel
+    import { writable } from 'svelte/store';
+    import {page} from '$app/stores';
 
-    $: messages = channel.messages
+
+    export let channel
+    export let messages
+
 
     async function handleSubmit(e) {
         const formData = new FormData(e.target)
@@ -38,21 +53,24 @@
     }
 </script>
 
-<div>
-    <pre class="">{JSON.stringify(channel, null, 2)}</pre>
+    <h1 class="text-2xl font-bold mb-2">{channel.title}</h1>
+    <p class="text-gray-600 border-b-2 pb-6">{channel.description}</p>
 
-    {#each messages as message}
-        <p>{message.content}</p>
-    {/each}
+    <div class="flex-1 flex flex-col p-2">
+        <div class="mt-auto">
+            {#each $messages as message}
+                <p class="p-2">{message.content}</p>
+            {/each}
+        </div>
+    </div>
 
     <form on:submit|preventDefault={handleSubmit} class="mt-6" action="">
         <div class="flex gap-2">
-            <input class="bg-zinc-700 px-2" type="text" name="content" id="" />
+            <input class="flex-1 border-2 rounded px-2 overflow-auto" type="text" name="content" id="" />
             <button
                 type="submit"
-                class="bg-green-600 hover:bg-green-700 text-white rounded p-2"
+                class="bg-red-400 hover:bg-red-500 px-4 py-2 text-white rounded shadow"
                 >Send</button
             >
         </div>
     </form>
-</div>

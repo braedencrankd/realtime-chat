@@ -22,17 +22,20 @@
     export let channels
 </script>
 
-<main class="container m-12 max-w-xl ">
-    <h1 class="text-4xl font-black mb-4">Channels</h1>
-    <ul class="mb-12">
-        {#each channels as channel}
-            <li>
-                <a
-                    class="font-bold text-green-400 hover:text-green-500 "
-                    href="/channels/{channel.id}">{channel.title}</a
-                >
-            </li>
-        {/each}
-    </ul>
-    <slot />
+<main class="container max-w-xl">
+    <div class="flex h-screen">
+        <ul class="bg-gray-800 text-white w-40 p-8">
+            {#each channels as channel}
+                <li>
+                    <a class="" href="/channels/{channel.id}">
+                        <span class="text-gray-600">#</span>
+                        {channel.title}</a
+                    >
+                </li>
+            {/each}
+        </ul>
+        <div class="flex-1 p-8 flex flex-col">
+            <slot />
+        </div>
+    </div>
 </main>
